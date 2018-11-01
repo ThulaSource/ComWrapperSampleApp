@@ -1,0 +1,15 @@
+﻿<schema xmlns:kith="http://www.kith.no/xmlstds" xmlns:xsd="http://www.w3.org/2001/XMLSchema.xsd" 
+        xmlns="http://www.w3.org/2001/XMLSchema" 
+        xmlns:doseconverter="http://www.thula.no/DoseConverter/2013-04-12" 
+        xmlns:fs="http://www.kith.no/xmlstds/eresept/forskrivning/2010-04-01" 
+        targetNamespace="http://www.thula.no/DoseConverter/2013-04-12" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <import namespace="http://www.kith.no/xmlstds/eresept/forskrivning/2010-04-01" 
+          schemaLocation="eResept-Meldingsdefinisjoner-V2.4-2012-10-31/felles/Forskrivning-2010-04-01-BF3.xsd"/>
+  <element name="Doseringer">
+    <complexType>
+      <sequence>
+        <element ref="fs:Dosering" minOccurs="0" maxOccurs="unbounded"/>
+      </sequence>
+    </complexType>
+  </element>
+</schema>
