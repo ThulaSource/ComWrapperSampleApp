@@ -46,7 +46,7 @@ The following is a brief explanation of the project organization:
 
 ################
 ################
-NOTE: To be able to run this project the FM.common.dll file must be added to the .\lib\FM.Common\ directory. Contact Ole Martin Winnem for more info.
+NOTE: To be able to run this project the FM.Common.dll file must be added to the .\lib\FM.Common\ directory. Contact Ole Martin Winnem for more info.
 ################
 ################
 
