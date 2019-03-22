@@ -178,7 +178,7 @@ namespace COMWrapperSampleApp.Logic
 
                 if (!response.StatusCode.Equals(HttpStatusCode.Found))
                 {
-                    throw new ApplicationException($"Error communicating with SFM Single Service: {response.ReasonPhrase}");
+                    throw new ApplicationException($"Error communicating with SFM Router: {response.ReasonPhrase}");
                 }
 
                 var clientAndApiEnpoint = new Uri(response.Headers.Location.ToString());
