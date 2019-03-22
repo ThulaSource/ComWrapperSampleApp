@@ -3,7 +3,7 @@
     public static class Constants
     {
         public const string AppSettingsKey = "appSettings";
-        public const string ApiEndpointKey = "ApiEndpoint";
+        public const string SfmRouterEndpointKey = "SfmRouterEndpoint";
         public const string HelseIdEndpointKey = "HelseIdEndpoint";
         public const string HelseIdRedirectUriKey = "HelseIdRedirectUri";
         public const string HelseIdClientIdKey = "HelseIdClientId";

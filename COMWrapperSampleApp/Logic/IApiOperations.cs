@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Web;
 using System.Xml.Linq;
 using Xml.Schema.Linq;
 
@@ -129,28 +130,24 @@ namespace COMWrapperSampleApp.Logic
 
         private T RunRemotely<T>(IEpjApiRequest parameter, string methodName, string fnr = null) where T: XTypedElement, new()
         {
-            var endpoint = configurations.ApiEndpoint;
-            if (!endpoint.EndsWith("/"))
-            {
-                endpoint += "/";
-            }
-
-            endpoint += methodName;
-
-            //Read access and id_token from COM call
-
+            //Read access and id_token from COM call 
             var accessToken = parameter?.LoginInfo?.AccessToken;
             var idToken = parameter?.LoginInfo?.IdToken;
             var tokens = $"access_token={accessToken}&id_token={idToken}";
 
-            // There are now tokens present -> Redirect to loogin
+            // There are now tokens present -> Redirect to login
             if (string.IsNullOrWhiteSpace(accessToken) || string.IsNullOrWhiteSpace(idToken))
             {
                 if (!authentication.IsAuthenticated)
                 {
                     try
                     {
+                        // Uses implicit grant flow
                         authentication.PromptForUserLogin();
+                        
+                        // Uses authorization grant flow
+                        //authentication.StartAuthorizationGrant();
+
                         accessToken = authentication.AccessToken;
                         idToken = authentication.IdToken;
                         tokens = authentication.HttpToken;
@@ -164,31 +161,64 @@ namespace COMWrapperSampleApp.Logic
                 }
             }
 
-            var httpHandler = new HttpClientHandler() { AllowAutoRedirect = false };
+            var sfmClientUrl = "";
+            var sfmApiEndpoint = "";
 
-            // Call SFM API to get SFM client URL and patient ticket
+            // Connect to SFM.Router to get client and api endpoints for this user/installation
+            var httpHandler = new HttpClientHandler()
+            {
+                // Prevent 302 redirection
+                AllowAutoRedirect = false
+            };
+
+            using (var httpClient = new HttpClient(httpHandler))
+            {
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                var response = httpClient.GetAsync(configurations.SfmRouterEndpoint).Result;
+
+                if (!response.StatusCode.Equals(HttpStatusCode.Found))
+                {
+                    throw new ApplicationException($"Error communicating with SFM Single Service: {response.ReasonPhrase}");
+                }
+
+                var clientAndApiEnpoint = new Uri(response.Headers.Location.ToString());
+                sfmApiEndpoint = HttpUtility.ParseQueryString(clientAndApiEnpoint.Query).Get("api_endpoint");
+                sfmClientUrl = clientAndApiEnpoint.GetLeftPart(UriPartial.Authority);
+            }
+
+            if (!sfmClientUrl.EndsWith("/"))
+            {
+                sfmClientUrl += "/";
+            }
+
+            if (!sfmApiEndpoint.EndsWith("/"))
+            {
+                sfmApiEndpoint += "/";
+            }
+
+
+            // Connect to SFM Epj API to store/update patient and get ticket
+            var sfmApiEndpointMethod = $"{sfmApiEndpoint}api/Epj/{methodName}";
+
+            httpHandler = new HttpClientHandler() { AllowAutoRedirect = false };
             using (var httpClient = new HttpClient(httpHandler))
             {
                 using (var stringContent = new StringContent(((XTypedElement)parameter).Untyped.ToString(), Encoding.UTF8, "application/xml"))
                 {
                     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
-                    var response = httpClient.PostAsync(endpoint, stringContent).Result;
+                    var response = httpClient.PostAsync(sfmApiEndpointMethod, stringContent).Result;
                     if (response.StatusCode == HttpStatusCode.Found)
                     {
+                        // Construct client entry point with the result from start pasient call
                         response.Headers.TryGetValues("ClientUrl", out var url);
-                        var clientUrl = url.First();
+                        sfmClientUrl += url.First() + $"&api_endpoint={sfmApiEndpoint}";
 
-                        var host = clientUrl;
-                        if (!host.Contains("://"))
-                        {
-                            host = $"http://{clientUrl}";
-                        }
+                        var hostUrl = new Uri(sfmClientUrl);
 
-                        var hostUrl = new Uri(host);
-                        browser.UpdateMainFormTitle($"SFM COM Wrapper Sample (Pasient : {fnr}) @{hostUrl.Host}");
-
-                        browser.Browser.Navigate($"{clientUrl}#{tokens}");
+                        // Open SFM client
+                        browser.UpdateMainFormTitle($"SFM COM Wrapper (Pasient : {fnr}) @{hostUrl.Host}");
+                        browser.Browser.Navigate($"{sfmClientUrl}#{tokens}");
                         var responseContent = response.Content.ReadAsStringAsync().Result;
                         return new T { Untyped = XElement.Parse(responseContent) };
                     }

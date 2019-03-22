@@ -4,9 +4,9 @@ namespace COMWrapperSampleApp.Configuration
     public interface IConfigurations
     {
         /// <summary>
-        /// The SFM API endpoint
+        /// The SFM Router endpoint
         /// </summary>
-        string ApiEndpoint { get; }
+        string SfmRouterEndpoint { get; }
 
         /// <summary>
         /// The HelseId endpoint
@@ -38,10 +38,11 @@ namespace COMWrapperSampleApp.Configuration
             this.configProvider = configProvider;
         }
 
-        public string ApiEndpoint => configProvider.Configurations.AppSettings(Constants.ApiEndpointKey);
         public string HelseIdEndpoint => configProvider.Configurations.AppSettings(Constants.HelseIdEndpointKey);
         public string HelseIdRedirectUri => configProvider.Configurations.AppSettings(Constants.HelseIdRedirectUriKey);
         public string HelseIdClientId => configProvider.Configurations.AppSettings(Constants.HelseIdClientIdKey);
         public string HelseIdScope => configProvider.Configurations.AppSettings(Constants.HelseIdScopeKey);
+
+        public string SfmRouterEndpoint => configProvider.Configurations.AppSettings(Constants.SfmRouterEndpointKey);
     }
 }
