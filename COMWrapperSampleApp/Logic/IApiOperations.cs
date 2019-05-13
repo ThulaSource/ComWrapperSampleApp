@@ -142,11 +142,11 @@ namespace COMWrapperSampleApp.Logic
                 {
                     try
                     {
-                        // Uses implicit grant flow
-                        authentication.PromptForUserLogin();
-                        
-                        // Uses authorization grant flow
-                        //authentication.StartAuthorizationGrant();
+                        // Start implicit grant flow
+                        //authentication.PromptForUserLogin();
+
+                        // Start Authorization grant flow
+                        authentication.StartAuthorizationGrant();
 
                         accessToken = authentication.AccessToken;
                         idToken = authentication.IdToken;
