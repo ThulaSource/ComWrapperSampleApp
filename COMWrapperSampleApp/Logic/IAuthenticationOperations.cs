@@ -107,6 +107,7 @@ namespace COMWrapperSampleApp.Logic
         {
             var clientOptions = LoadOpenIdOptions();
             var browser = browserFactory.Browser.WebBrowser;
+            browser.UpdateRedirectUri(clientOptions.RedirectUri);
             clientOptions.Browser = browser;
 
             var oidcClient = new OidcClient(clientOptions);
@@ -121,7 +122,7 @@ namespace COMWrapperSampleApp.Logic
 
             var result = oidcClient.LoginAsync(new LoginRequest()
             {
-                BackChannelExtraParameters = GetBackChannelExtraParameters(disco, clientOptions.ClientId, "YOURCERTIFICATETHUMBPRINT")
+                BackChannelExtraParameters = GetBackChannelExtraParameters(disco, clientOptions.ClientId)
             });
 
             var res = result.GetAwaiter().GetResult();
@@ -138,9 +139,11 @@ namespace COMWrapperSampleApp.Logic
             return res?.AccessToken;
         }
 
-        private object GetBackChannelExtraParameters(DiscoveryResponse disco, string clientId, string certificateThumbprint)
+        private object GetBackChannelExtraParameters(DiscoveryResponse disco, string clientId)
         {
-            var assertion = COMWrapperSampleApp.OpenIdConnect.ClientAssertion.CreateWithEnterpriseCertificate(clientId, disco.TokenEndpoint, certificateThumbprint);
+            // The ORGID parameter is used to load the private key from the local store.
+            // This should be changed if there's another logic on storing/loading keys from the store.
+            var assertion = COMWrapperSampleApp.OpenIdConnect.ClientAssertion.CreateWithRsaKeys(clientId, disco.TokenEndpoint, "ORGID");
 
             return new
             {

@@ -13,6 +13,11 @@ namespace COMWrapperSampleApp.BrowserLogic
             this.browser = browser;
         }
 
+        public void UpdateRedirectUri(string uri)
+        {
+            RedirectUri = uri;
+        }
+
         public override void OpenBrowser(string url)
         {
             browser.Load(url);

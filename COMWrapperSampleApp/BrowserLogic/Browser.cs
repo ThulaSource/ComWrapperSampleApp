@@ -6,16 +6,16 @@ namespace COMWrapperSampleApp.BrowserLogic
 {
     public abstract class Browser : IBrowser
     {
-        private string _redirectUri;
+        public string RedirectUri;
 
         public Browser(string redirectUri)
         {
-            _redirectUri = redirectUri;
+            RedirectUri = redirectUri;
         }
 
         public async Task<BrowserResult> InvokeAsync(BrowserOptions options)
         {
-            using (var listener = new BrowserRequestHandler(_redirectUri))
+            using (var listener = new BrowserRequestHandler(RedirectUri))
             {
                 OpenBrowser(options.StartUrl);
 
